@@ -8,6 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface TransactionApiService {
     @GET("api/v1/transactions")
@@ -20,4 +21,17 @@ interface TransactionApiService {
         @Header("Authorization") token: String,
         @Body request: TransactionRequest
     ): Response<TransactionResponse>
+
+    @PUT("api/v1/transactions/{id}")
+    suspend fun updateTransaction(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") id: String,
+        @Body request: TransactionRequest
+    ): Response<TransactionResponse>
+
+    @retrofit2.http.DELETE("api/v1/transactions/{id}")
+    suspend fun deleteTransaction(
+        @Header("Authorization") token: String,
+        @retrofit2.http.Path("id") id: String
+    ): Response<Any>
 }

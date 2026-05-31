@@ -17,6 +17,9 @@ sealed class Screen(val route: String) {
     object Home : Screen("home")
     object Profile : Screen("profile")
     object AddTransaction : Screen("add_transaction")
+    object UpdateTransaction : Screen("update_transaction/{transactionId}") {
+        fun createRoute(transactionId: String) = "update_transaction/$transactionId"
+    }
     
     object VerifyOTP : Screen("verify_otp/{email}") {
         fun createRoute(email: String) = "verify_otp/$email"
@@ -255,6 +258,9 @@ fun NavGraph(
                 },
                 onNavigateToAddTransaction = {
                     navController.navigate(Screen.AddTransaction.route)
+                },
+                onNavigateToUpdateTransaction = { transactionId ->
+                    navController.navigate(Screen.UpdateTransaction.createRoute(transactionId))
                 }
             )
         }
@@ -287,6 +293,23 @@ fun NavGraph(
             popExitTransition = { slideOutToRight() }
         ) {
             AddTransactionScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(
+            route = Screen.UpdateTransaction.route,
+            arguments = listOf(navArgument("transactionId") { type = NavType.StringType }),
+            enterTransition = { slideInFromRight() },
+            exitTransition = { slideOutToLeft() },
+            popEnterTransition = { slideInFromLeft() },
+            popExitTransition = { slideOutToRight() }
+        ) { backStackEntry ->
+            val transactionId = backStackEntry.arguments?.getString("transactionId") ?: ""
+            UpdateTransactionScreen(
+                transactionId = transactionId,
                 onNavigateBack = {
                     navController.popBackStack()
                 }

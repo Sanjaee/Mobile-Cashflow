@@ -20,6 +20,8 @@ data class TransactionUiState(
     val isSettingIncome: Boolean = false,
     val errorMessage: String? = null,
     val addSuccess: Boolean = false,
+    val updateSuccess: Boolean = false,
+    val deleteSuccess: Boolean = false,
     val incomeSetSuccess: Boolean = false
 )
 
@@ -115,6 +117,49 @@ class TransactionViewModel(
                 )
             }
         }
+    }
+
+    fun updateTransaction(id: String, type: String, amount: Double, description: String, date: String?) {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, updateSuccess = false)
+        viewModelScope.launch {
+            val request = TransactionRequest(type, amount, description, date)
+            val result = repository.updateTransaction(id, request)
+            result.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    updateSuccess = true
+                )
+                fetchAll()
+            }.onFailure { exception ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = exception.message ?: "Failed to update transaction"
+                )
+            }
+        }
+    }
+
+    fun deleteTransaction(id: String) {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, deleteSuccess = false)
+        viewModelScope.launch {
+            val result = repository.deleteTransaction(id)
+            result.onSuccess {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    deleteSuccess = true
+                )
+                fetchAll()
+            }.onFailure { exception ->
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = exception.message ?: "Failed to delete transaction"
+                )
+            }
+        }
+    }
+
+    fun resetSuccessStates() {
+        _uiState.value = _uiState.value.copy(addSuccess = false, updateSuccess = false, deleteSuccess = false)
     }
 
     fun resetAddSuccess() {

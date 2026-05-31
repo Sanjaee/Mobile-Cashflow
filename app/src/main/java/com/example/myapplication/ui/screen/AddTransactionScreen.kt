@@ -21,6 +21,7 @@ import com.example.myapplication.ui.theme.Black
 import com.example.myapplication.ui.theme.White
 import com.example.myapplication.ui.viewmodel.TransactionViewModel
 import com.example.myapplication.ui.viewmodel.ViewModelFactory
+import com.example.myapplication.util.CurrencyVisualTransformation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,10 +95,11 @@ fun AddTransactionScreen(
             // Amount Input
             OutlinedTextField(
                 value = amount,
-                onValueChange = { amount = it },
+                onValueChange = { amount = it.filter { char -> char.isDigit() } },
                 label = { Text("Amount (Rp)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                visualTransformation = CurrencyVisualTransformation(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Black,

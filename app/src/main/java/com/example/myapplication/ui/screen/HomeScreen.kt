@@ -38,6 +38,7 @@ import com.example.myapplication.ui.theme.Black
 import com.example.myapplication.ui.theme.White
 import com.example.myapplication.ui.viewmodel.TransactionViewModel
 import com.example.myapplication.ui.viewmodel.ViewModelFactory
+import com.example.myapplication.util.CurrencyVisualTransformation
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -56,6 +57,7 @@ private val TextSecondary  = Color(0xFF94A3B8)
 fun HomeScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToAddTransaction: () -> Unit,
+    onNavigateToUpdateTransaction: (String) -> Unit,
     viewModel: TransactionViewModel = viewModel(
         factory = ViewModelFactory(LocalContext.current.applicationContext as android.app.Application)
     )
@@ -168,7 +170,10 @@ fun HomeScreen(
                         visible = true,
                         enter = fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 2 }
                     ) {
-                        TransactionItem(transaction = tx)
+                        TransactionItem(
+                            transaction = tx,
+                            onClick = { tx.id?.let { onNavigateToUpdateTransaction(it) } }
+                        )
                     }
                 }
             }
@@ -359,7 +364,10 @@ fun ActionButtonsRow(
 
 // ─── Transaction Item ─────────────────────────────────────────────────────────
 @Composable
-fun TransactionItem(transaction: Transaction) {
+fun TransactionItem(
+    transaction: Transaction,
+    onClick: () -> Unit = {}
+) {
     val fmt        = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
     val isIncome   = transaction.type.lowercase() == "income"
     val amountColor = if (isIncome) AccentGreen else AccentRed
@@ -379,7 +387,8 @@ fun TransactionItem(transaction: Transaction) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 5.dp),
+            .padding(horizontal = 20.dp, vertical = 5.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = White),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
@@ -460,10 +469,11 @@ fun SetIncomeDialog(
 
                 OutlinedTextField(
                     value = inputText,
-                    onValueChange = { inputText = it },
+                    onValueChange = { inputText = it.filter { char -> char.isDigit() } },
                     label = { Text("Income Amount (Rp)") },
                     modifier = Modifier.fillMaxWidth(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    visualTransformation = CurrencyVisualTransformation(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = GradientEnd,

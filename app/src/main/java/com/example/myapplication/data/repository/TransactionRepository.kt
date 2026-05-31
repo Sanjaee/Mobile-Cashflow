@@ -79,4 +79,42 @@ class TransactionRepository(
             Result.failure(e)
         }
     }
+
+    suspend fun updateTransaction(id: String, request: TransactionRequest): Result<Transaction> {
+        return try {
+            val response = transactionApiService.updateTransaction(getToken(), id, request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.data)
+            } else {
+                val errorMsg = response.errorBody()?.string()?.let {
+                    try {
+                        val json = org.json.JSONObject(it)
+                        json.optJSONObject("error")?.optString("message") ?: json.optString("message")
+                    } catch (e: Exception) { null }
+                } ?: "Failed to update transaction"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteTransaction(id: String): Result<Boolean> {
+        return try {
+            val response = transactionApiService.deleteTransaction(getToken(), id)
+            if (response.isSuccessful) {
+                Result.success(true)
+            } else {
+                val errorMsg = response.errorBody()?.string()?.let {
+                    try {
+                        val json = org.json.JSONObject(it)
+                        json.optJSONObject("error")?.optString("message") ?: json.optString("message")
+                    } catch (e: Exception) { null }
+                } ?: "Failed to delete transaction"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
