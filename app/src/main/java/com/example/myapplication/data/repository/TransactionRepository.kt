@@ -1,6 +1,9 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.data.api.MonthlyFinanceApiService
 import com.example.myapplication.data.api.TransactionApiService
+import com.example.myapplication.data.model.MonthlyFinance
+import com.example.myapplication.data.model.SetIncomeRequest
 import com.example.myapplication.data.model.Transaction
 import com.example.myapplication.data.model.TransactionRequest
 import com.example.myapplication.data.preferences.PreferencesManager
@@ -8,6 +11,7 @@ import kotlinx.coroutines.flow.first
 
 class TransactionRepository(
     private val transactionApiService: TransactionApiService,
+    private val monthlyFinanceApiService: MonthlyFinanceApiService,
     private val preferencesManager: PreferencesManager
 ) {
     private suspend fun getToken(): String {
@@ -34,7 +38,42 @@ class TransactionRepository(
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!.data)
             } else {
-                Result.failure(Exception("Failed to create transaction"))
+                // Try to parse error message from body
+                val errorMsg = response.errorBody()?.string()?.let {
+                    try {
+                        val json = org.json.JSONObject(it)
+                        json.optJSONObject("error")?.optString("message") ?: json.optString("message")
+                    } catch (e: Exception) { null }
+                } ?: "Failed to create transaction"
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getMonthlyFinance(year: Int, month: Int): Result<MonthlyFinance> {
+        return try {
+            val response = monthlyFinanceApiService.getMonthlyFinance(getToken(), year, month)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.data)
+            } else {
+                Result.failure(Exception("Failed to fetch monthly finance"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun setIncome(month: Int, year: Int, income: Double): Result<MonthlyFinance> {
+        return try {
+            val response = monthlyFinanceApiService.setIncome(
+                getToken(), SetIncomeRequest(month, year, income)
+            )
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.data)
+            } else {
+                Result.failure(Exception("Failed to set income"))
             }
         } catch (e: Exception) {
             Result.failure(e)

@@ -28,5 +28,6 @@ object ApiClient {
     
     val authApiService: AuthApiService = retrofit.create(AuthApiService::class.java)
     val transactionApiService: TransactionApiService = retrofit.create(TransactionApiService::class.java)
+    val monthlyFinanceApiService: MonthlyFinanceApiService = retrofit.create(MonthlyFinanceApiService::class.java)
 }
 

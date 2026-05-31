@@ -30,7 +30,11 @@ class ViewModelFactory(private val application: Application) : ViewModelProvider
             }
             modelClass.isAssignableFrom(TransactionViewModel::class.java) -> {
                 val dataStore = PreferencesManager(application)
-                val repository = TransactionRepository(ApiClient.transactionApiService, dataStore)
+                val repository = TransactionRepository(
+                    ApiClient.transactionApiService,
+                    ApiClient.monthlyFinanceApiService,
+                    dataStore
+                )
                 TransactionViewModel(repository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
